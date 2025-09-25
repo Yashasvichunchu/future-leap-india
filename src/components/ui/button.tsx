@@ -15,6 +15,10 @@ const buttonVariants = cva(
         secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80",
         ghost: "hover:bg-accent hover:text-accent-foreground",
         link: "text-primary underline-offset-4 hover:underline",
+        hero: "btn-primary text-lg font-semibold px-8 py-4 h-12 rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-300",
+        quiz: "bg-gradient-to-r from-secondary to-accent text-white hover:from-secondary/90 hover:to-accent/90 shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200",
+        success: "btn-success shadow-md hover:shadow-lg",
+        career: "bg-gradient-to-r from-primary to-orange-400 text-white hover:from-primary/90 hover:to-orange-400/90 shadow-md",
       },
       size: {
         default: "h-10 px-4 py-2",

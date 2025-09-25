@@ -2,41 +2,62 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
-*/
+/* Career Guidance Website Design System - Indian Youth Focus */
 
 @layer base {
   :root {
+    /* Core Brand Colors - Inspired by Indian heritage */
     --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    --foreground: 222 84% 4.9%;
 
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card-foreground: 222 84% 4.9%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover-foreground: 222 84% 4.9%;
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    /* Primary - Saffron Orange (Indian Pride) */
+    --primary: 25 95% 53%;
+    --primary-foreground: 0 0% 98%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    /* Secondary - Deep Ocean Blue (Trust & Knowledge) */
+    --secondary: 213 94% 68%;
+    --secondary-foreground: 0 0% 98%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    /* Success - Emerald Green (Growth & Achievement) */
+    --success: 142 76% 36%;
+    --success-foreground: 0 0% 98%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    /* Accent - Warm Purple (Creativity & Innovation) */
+    --accent: 262 83% 58%;
+    --accent-foreground: 0 0% 98%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    /* Muted - Soft Neutral */
+    --muted: 210 40% 96%;
+    --muted-foreground: 215 16% 47%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --ring: 25 95% 53%;
 
     --radius: 0.5rem;
+
+    /* Custom Gradients for Career Website */
+    --gradient-hero: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--secondary)));
+    --gradient-card: linear-gradient(145deg, hsl(var(--card)), hsl(var(--muted)));
+    --gradient-success: linear-gradient(135deg, hsl(var(--success)), hsl(142 76% 46%));
+
+    /* Shadows for Depth */
+    --shadow-card: 0 4px 6px -1px hsl(var(--primary) / 0.1), 0 2px 4px -1px hsl(var(--primary) / 0.06);
+    --shadow-button: 0 4px 12px hsl(var(--primary) / 0.3);
+    --shadow-quiz: 0 8px 25px hsl(var(--secondary) / 0.15);
+
+    /* Animation Variables */
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --bounce-duration: 0.6s;
 
     --sidebar-background: 0 0% 98%;
 
@@ -101,5 +122,66 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+/* Custom Components for Career Guidance */
+@layer components {
+  /* Hero Section Styles */
+  .hero-gradient {
+    @apply bg-gradient-to-br from-primary via-secondary to-accent;
+  }
+
+  /* Quiz Card Animations */
+  .quiz-card {
+    @apply transform transition-all duration-300 hover:scale-105 hover:shadow-lg;
+    box-shadow: var(--shadow-quiz);
+  }
+
+  /* Progress Indicators */
+  .progress-ring {
+    @apply relative inline-flex items-center justify-center w-20 h-20;
+  }
+
+  /* Interactive Buttons */
+  .btn-primary {
+    @apply bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg;
+    box-shadow: var(--shadow-button);
+    transition: var(--transition-smooth);
+  }
+
+  .btn-secondary {
+    @apply bg-secondary text-secondary-foreground hover:bg-secondary/90;
+    transition: var(--transition-smooth);
+  }
+
+  .btn-success {
+    @apply bg-success text-success-foreground hover:bg-success/90;
+    transition: var(--transition-smooth);
+  }
+
+  /* Career Path Cards */
+  .career-card {
+    @apply bg-card border border-border rounded-lg p-6 transition-all duration-300;
+    box-shadow: var(--shadow-card);
+  }
+
+  .career-card:hover {
+    @apply transform -translate-y-1 shadow-xl;
+  }
+
+  /* Indian-inspired Patterns */
+  .pattern-dots {
+    background-image: radial-gradient(circle, hsl(var(--primary) / 0.1) 1px, transparent 1px);
+    background-size: 20px 20px;
+  }
+
+  /* Roadmap Timeline */
+  .timeline-step {
+    @apply relative flex items-center justify-center w-8 h-8 rounded-full bg-primary text-primary-foreground font-semibold;
+  }
+
+  .timeline-connector {
+    @apply absolute w-0.5 h-full bg-gradient-to-b from-primary to-secondary left-1/2 transform -translate-x-1/2;
   }
 }
