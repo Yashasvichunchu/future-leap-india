@@ -73,7 +73,15 @@ const QuizPreview = () => {
                     </div>
                   ))}
                 </div>
-                <Button variant="quiz" className="w-full group">
+                <Button 
+                  variant="quiz" 
+                  className="w-full group"
+                  onClick={() => {
+                    const level = item.level === '10th Pass' ? 'tenth' : 
+                                  item.level === '12th Pass' ? 'twelfth' : 'graduate'
+                    window.location.href = `/quiz?level=${level}`
+                  }}
+                >
                   Start Assessment
                   <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                 </Button>

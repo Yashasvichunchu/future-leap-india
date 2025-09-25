@@ -1,9 +1,13 @@
 import { Button } from "@/components/ui/button";
-import { GraduationCap, Menu, X } from "lucide-react";
+import { GraduationCap, Menu, X, LogOut } from "lucide-react";
 import { useState } from "react";
+import { useAuth } from "@/hooks/useAuth";
+import { SignInDialog } from "@/components/auth/SignInDialog";
+import { SignUpDialog } from "@/components/auth/SignUpDialog";
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { user, signOut } = useAuth();
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-sm border-b border-border shadow-sm">
@@ -30,12 +34,33 @@ const Navbar = () => {
             <a href="#resources" className="text-foreground hover:text-primary transition-colors">
               Resources
             </a>
-            <Button variant="outline" size="sm">
-              Sign In
-            </Button>
-            <Button variant="hero" size="sm">
-              Get Started
-            </Button>
+            {user ? (
+              <div className="flex items-center space-x-4">
+                <span className="text-sm text-muted-foreground">
+                  Welcome, {user.email}
+                </span>
+                <Button variant="outline" size="sm" onClick={signOut}>
+                  <LogOut className="w-4 h-4 mr-2" />
+                  Sign Out
+                </Button>
+                <Button variant="hero" size="sm" onClick={() => window.location.href = '/dashboard'}>
+                  Dashboard
+                </Button>
+              </div>
+            ) : (
+              <>
+                <SignInDialog>
+                  <Button variant="outline" size="sm">
+                    Sign In
+                  </Button>
+                </SignInDialog>
+                <SignUpDialog>
+                  <Button variant="hero" size="sm">
+                    Get Started
+                  </Button>
+                </SignUpDialog>
+              </>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -63,12 +88,33 @@ const Navbar = () => {
               Resources
             </a>
             <div className="flex flex-col space-y-2 pt-4">
-              <Button variant="outline" size="sm">
-                Sign In
-              </Button>
-              <Button variant="hero" size="sm">
-                Get Started
-              </Button>
+              {user ? (
+                <>
+                  <span className="text-sm text-muted-foreground">
+                    Welcome, {user.email}
+                  </span>
+                  <Button variant="outline" size="sm" onClick={signOut}>
+                    <LogOut className="w-4 h-4 mr-2" />
+                    Sign Out
+                  </Button>
+                  <Button variant="hero" size="sm" onClick={() => window.location.href = '/dashboard'}>
+                    Dashboard
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <SignInDialog>
+                    <Button variant="outline" size="sm">
+                      Sign In
+                    </Button>
+                  </SignInDialog>
+                  <SignUpDialog>
+                    <Button variant="hero" size="sm">
+                      Get Started
+                    </Button>
+                  </SignUpDialog>
+                </>
+              )}
             </div>
           </div>
         )}
