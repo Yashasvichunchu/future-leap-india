@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
-import { supabase, CareerSuggestion, SkillGap, CareerRoadmap } from '@/lib/supabase'
+import { CareerSuggestion, SkillGap, CareerRoadmap } from '@/lib/types'
 import { useAuth } from '@/hooks/useAuth'
 import { 
   User, 
@@ -35,36 +35,23 @@ export const Dashboard = () => {
     if (!user) return
 
     try {
-      // Load quiz results
-      const { data: quizData } = await supabase
-        .from('quiz_responses')
-        .select('career_suggestions')
-        .eq('user_id', user.id)
-        .order('completed_at', { ascending: false })
-        .limit(1)
-
-      if (quizData && quizData[0]) {
-        setQuizResults(quizData[0].career_suggestions)
+      // Load quiz results from localStorage
+      const quizResult = localStorage.getItem('quiz-result')
+      if (quizResult) {
+        const parsed = JSON.parse(quizResult)
+        setQuizResults(parsed.career_suggestions || [])
       }
 
-      // Load skill gaps
-      const { data: skillData } = await supabase
-        .from('skill_gaps')
-        .select('*')
-        .eq('user_id', user.id)
-
-      if (skillData) {
-        setSkillGaps(skillData)
+      // Load skill gaps from localStorage
+      const skillGapsData = localStorage.getItem('skill-gaps')
+      if (skillGapsData) {
+        setSkillGaps(JSON.parse(skillGapsData))
       }
 
-      // Load roadmaps
-      const { data: roadmapData } = await supabase
-        .from('career_roadmaps')
-        .select('*')
-        .eq('user_id', user.id)
-
-      if (roadmapData) {
-        setRoadmaps(roadmapData)
+      // Load roadmaps from localStorage
+      const roadmapsData = localStorage.getItem('career-roadmaps')
+      if (roadmapsData) {
+        setRoadmaps(JSON.parse(roadmapsData))
       }
     } catch (error) {
       console.error('Error loading dashboard data:', error)
@@ -78,7 +65,9 @@ export const Dashboard = () => {
 
     try {
       // This would typically call an AI service or have more sophisticated logic
-      const skillAnalysis = {
+      const skillAnalysis: SkillGap = {
+        id: Math.random().toString(36).substr(2, 9),
+        user_id: user.id,
         career_path: careerPath,
         current_skills: ['Basic Programming', 'Communication', 'Teamwork'],
         required_skills: ['Advanced Programming', 'System Design', 'Project Management', 'Leadership'],
@@ -99,12 +88,11 @@ export const Dashboard = () => {
         ]
       }
 
-      await supabase
-        .from('skill_gaps')
-        .insert({
-          user_id: user.id,
-          ...skillAnalysis
-        })
+      // Save to localStorage
+      const existingData = localStorage.getItem('skill-gaps')
+      const skillGaps = existingData ? JSON.parse(existingData) : []
+      skillGaps.push(skillAnalysis)
+      localStorage.setItem('skill-gaps', JSON.stringify(skillGaps))
 
       loadDashboardData()
     } catch (error) {
@@ -116,9 +104,12 @@ export const Dashboard = () => {
     if (!user) return
 
     try {
-      const roadmapData = {
+      const roadmapData: CareerRoadmap = {
+        id: Math.random().toString(36).substr(2, 9),
+        user_id: user.id,
         career_path: careerPath,
         timeline_months: 24,
+        created_at: new Date().toISOString(),
         steps: [
           {
             id: '1',
@@ -159,12 +150,11 @@ export const Dashboard = () => {
         ]
       }
 
-      await supabase
-        .from('career_roadmaps')
-        .insert({
-          user_id: user.id,
-          ...roadmapData
-        })
+      // Save to localStorage
+      const existingData = localStorage.getItem('career-roadmaps')
+      const roadmaps = existingData ? JSON.parse(existingData) : []
+      roadmaps.push(roadmapData)
+      localStorage.setItem('career-roadmaps', JSON.stringify(roadmaps))
 
       loadDashboardData()
     } catch (error) {

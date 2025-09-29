@@ -1,28 +1,31 @@
 import { useState, useEffect } from 'react'
-import { User } from '@supabase/supabase-js'
-import { supabase } from '@/lib/supabase'
 import { toast } from '@/hooks/use-toast'
+
+// Define a simple User type to replace Supabase's User
+interface User {
+  id: string
+  email: string
+  name?: string
+  age?: number
+  education_level?: 'tenth' | 'twelfth' | 'graduate'
+  interests?: string[]
+}
 
 export const useAuth = () => {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null)
-      setLoading(false)
-    })
-
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        setUser(session?.user ?? null)
-        setLoading(false)
+    // Check for existing user in localStorage
+    const storedUser = localStorage.getItem('auth-user')
+    if (storedUser) {
+      try {
+        setUser(JSON.parse(storedUser))
+      } catch (error) {
+        localStorage.removeItem('auth-user')
       }
-    )
-
-    return () => subscription.unsubscribe()
+    }
+    setLoading(false)
   }, [])
 
   const signUp = async (email: string, password: string, userData: {
@@ -32,35 +35,28 @@ export const useAuth = () => {
     interests: string[]
   }) => {
     try {
-      const { data, error } = await supabase.auth.signUp({
+      // Mock authentication - in a real app, you'd call your backend API
+      await new Promise(resolve => setTimeout(resolve, 1000)) // Simulate API call
+      
+      const newUser: User = {
+        id: Math.random().toString(36).substr(2, 9),
         email,
-        password,
-        options: {
-          data: userData
-        }
-      })
-
-      if (error) throw error
-
-      // Create user profile
-      if (data.user) {
-        await supabase.from('users').insert({
-          id: data.user.id,
-          email,
-          ...userData
-        })
+        ...userData
       }
+
+      setUser(newUser)
+      localStorage.setItem('auth-user', JSON.stringify(newUser))
 
       toast({
         title: "Account created successfully!",
-        description: "Please check your email to verify your account."
+        description: "Welcome to Future Leap India!"
       })
 
-      return data
+      return { user: newUser }
     } catch (error: any) {
       toast({
         title: "Error creating account",
-        description: error.message,
+        description: error.message || "Something went wrong",
         variant: "destructive"
       })
       throw error
@@ -69,23 +65,28 @@ export const useAuth = () => {
 
   const signIn = async (email: string, password: string) => {
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
+      // Mock authentication - in a real app, you'd call your backend API
+      await new Promise(resolve => setTimeout(resolve, 1000)) // Simulate API call
+      
+      const mockUser: User = {
+        id: Math.random().toString(36).substr(2, 9),
         email,
-        password
-      })
+        name: 'Demo User'
+      }
 
-      if (error) throw error
+      setUser(mockUser)
+      localStorage.setItem('auth-user', JSON.stringify(mockUser))
 
       toast({
         title: "Welcome back!",
         description: "You have successfully signed in."
       })
 
-      return data
+      return { user: mockUser }
     } catch (error: any) {
       toast({
         title: "Error signing in",
-        description: error.message,
+        description: error.message || "Invalid credentials",
         variant: "destructive"
       })
       throw error
@@ -94,8 +95,8 @@ export const useAuth = () => {
 
   const signOut = async () => {
     try {
-      const { error } = await supabase.auth.signOut()
-      if (error) throw error
+      setUser(null)
+      localStorage.removeItem('auth-user')
 
       toast({
         title: "Signed out successfully",
@@ -104,7 +105,7 @@ export const useAuth = () => {
     } catch (error: any) {
       toast({
         title: "Error signing out",
-        description: error.message,
+        description: error.message || "Something went wrong",
         variant: "destructive"
       })
     }

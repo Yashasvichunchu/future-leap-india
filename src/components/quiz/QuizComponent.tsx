@@ -5,7 +5,7 @@ import { Progress } from '@/components/ui/progress'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Label } from '@/components/ui/label'
 import { Slider } from '@/components/ui/slider'
-import { supabase, CareerSuggestion } from '@/lib/supabase'
+import { CareerSuggestion } from '@/lib/types'
 import { useAuth } from '@/hooks/useAuth'
 import { toast } from '@/hooks/use-toast'
 import { ChevronLeft, ChevronRight, Clock, Award } from 'lucide-react'
@@ -289,18 +289,15 @@ export const QuizComponent = ({ educationLevel, onComplete }: QuizComponentProps
       // Evaluate responses and get career suggestions
       const careerSuggestions = evaluateResponses(responses, educationLevel)
 
-      // Save quiz response to database
-      const { error } = await supabase
-        .from('quiz_responses')
-        .insert({
-          user_id: user.id,
-          education_level: educationLevel,
-          responses,
-          career_suggestions: careerSuggestions,
-          completed_at: new Date().toISOString()
-        })
-
-      if (error) throw error
+      // Save quiz response to localStorage (replace database functionality)
+      const quizResult = {
+        user_id: user.id,
+        education_level: educationLevel,
+        responses,
+        career_suggestions: careerSuggestions,
+        completed_at: new Date().toISOString()
+      }
+      localStorage.setItem('quiz-result', JSON.stringify(quizResult))
 
       toast({
         title: "Quiz completed successfully!",
@@ -310,8 +307,8 @@ export const QuizComponent = ({ educationLevel, onComplete }: QuizComponentProps
       onComplete(careerSuggestions)
     } catch (error: any) {
       toast({
-        title: "Error saving quiz results",
-        description: error.message,
+        title: "Error processing quiz results",
+        description: error.message || "Something went wrong",
         variant: "destructive"
       })
     } finally {

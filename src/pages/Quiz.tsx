@@ -5,7 +5,7 @@ import { QuizComponent } from '@/components/quiz/QuizComponent'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { CareerSuggestion } from '@/lib/supabase'
+import { CareerSuggestion } from '@/lib/types'
 import { Trophy, TrendingUp, BookOpen, ArrowRight } from 'lucide-react'
 
 const Quiz = () => {
