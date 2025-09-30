@@ -1,28 +1,36 @@
 import { useState, useEffect } from 'react'
-import { User } from '@supabase/supabase-js'
-import { supabase } from '@/lib/supabase'
+import { api, getAuthToken } from '@/lib/api'
 import { toast } from '@/hooks/use-toast'
+
+interface User {
+  id: string
+  email: string
+  name: string
+  age: number
+  educationLevel: string
+  interests: string[]
+}
 
 export const useAuth = () => {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null)
+    // Check if user is logged in
+    const token = getAuthToken()
+    if (token) {
+      api.getCurrentUser()
+        .then((userData) => {
+          setUser(userData)
+          setLoading(false)
+        })
+        .catch(() => {
+          setUser(null)
+          setLoading(false)
+        })
+    } else {
       setLoading(false)
-    })
-
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        setUser(session?.user ?? null)
-        setLoading(false)
-      }
-    )
-
-    return () => subscription.unsubscribe()
+    }
   }, [])
 
   const signUp = async (email: string, password: string, userData: {
@@ -32,28 +40,18 @@ export const useAuth = () => {
     interests: string[]
   }) => {
     try {
-      const { data, error } = await supabase.auth.signUp({
+      const data = await api.signUp({
         email,
         password,
-        options: {
-          data: userData
-        }
+        name: userData.name,
+        age: userData.age,
+        educationLevel: userData.education_level,
+        interests: userData.interests
       })
-
-      if (error) throw error
-
-      // Create user profile
-      if (data.user) {
-        await supabase.from('users').insert({
-          id: data.user.id,
-          email,
-          ...userData
-        })
-      }
 
       toast({
         title: "Account created successfully!",
-        description: "Please check your email to verify your account."
+        description: "You can now sign in with your credentials."
       })
 
       return data
@@ -69,12 +67,8 @@ export const useAuth = () => {
 
   const signIn = async (email: string, password: string) => {
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password
-      })
-
-      if (error) throw error
+      const data = await api.signIn(email, password)
+      setUser(data.user)
 
       toast({
         title: "Welcome back!",
@@ -94,8 +88,8 @@ export const useAuth = () => {
 
   const signOut = async () => {
     try {
-      const { error } = await supabase.auth.signOut()
-      if (error) throw error
+      await api.signOut()
+      setUser(null)
 
       toast({
         title: "Signed out successfully",

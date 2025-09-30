@@ -5,7 +5,7 @@ import { Progress } from '@/components/ui/progress'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Label } from '@/components/ui/label'
 import { Slider } from '@/components/ui/slider'
-import { supabase, CareerSuggestion } from '@/lib/supabase'
+import { api } from '@/lib/api'
 import { useAuth } from '@/hooks/useAuth'
 import { toast } from '@/hooks/use-toast'
 import { ChevronLeft, ChevronRight, Clock, Award } from 'lucide-react'
@@ -20,7 +20,7 @@ interface QuizQuestion {
 
 interface QuizComponentProps {
   educationLevel: 'tenth' | 'twelfth' | 'graduate'
-  onComplete: (results: CareerSuggestion[]) => void
+  onComplete: (results: any[]) => void
 }
 
 // Quiz questions database
@@ -162,152 +162,24 @@ export const QuizComponent = ({ educationLevel, onComplete }: QuizComponentProps
     }
   }
 
-  const evaluateResponses = (responses: Record<string, any>, educationLevel: string): CareerSuggestion[] => {
-    // Career evaluation logic based on education level and responses
-    const careerDatabase = {
-      tenth: {
-        'Mathematics & Science': [
-          {
-            career_path: 'Engineering Preparation',
-            match_percentage: 85,
-            description: 'Prepare for engineering entrance exams through Science stream',
-            required_skills: ['Mathematics', 'Physics', 'Chemistry', 'Problem Solving'],
-            salary_range: '₹3-8 LPA after graduation',
-            growth_prospects: 'High demand in technology sector',
-            steps: ['Complete 12th Science', 'Prepare for JEE/other entrance exams', 'Choose engineering specialization']
-          },
-          {
-            career_path: 'Medical Field Preparation',
-            match_percentage: 80,
-            description: 'Pursue medical studies through Science stream with Biology',
-            required_skills: ['Biology', 'Chemistry', 'Physics', 'Dedication to study'],
-            salary_range: '₹5-15 LPA after specialization',
-            growth_prospects: 'Always in demand, respected profession',
-            steps: ['Complete 12th Science with Biology', 'Prepare for NEET', 'Complete MBBS/other medical courses']
-          }
-        ],
-        'Business & Commerce': [
-          {
-            career_path: 'Business & Management',
-            match_percentage: 90,
-            description: 'Excel in business, commerce, and management fields',
-            required_skills: ['Communication', 'Mathematics', 'Business Acumen', 'Leadership'],
-            salary_range: '₹2.5-6 LPA initially',
-            growth_prospects: 'Wide opportunities in corporate sector',
-            steps: ['Complete 12th Commerce', 'Pursue BBA/B.Com', 'Consider MBA for advancement']
-          }
-        ],
-        'Practical & Technical Skills': [
-          {
-            career_path: 'Technical Vocational Training',
-            match_percentage: 88,
-            description: 'Skilled technical roles through ITI, Polytechnic courses',
-            required_skills: ['Technical aptitude', 'Hands-on skills', 'Problem solving'],
-            salary_range: '₹2-5 LPA',
-            growth_prospects: 'High demand for skilled technicians',
-            steps: ['Complete ITI/Polytechnic', 'Gain practical experience', 'Specialize in emerging technologies']
-          }
-        ]
-      },
-      twelfth: {
-        'Engineering & Technology': [
-          {
-            career_path: 'Software Engineering',
-            match_percentage: 92,
-            description: 'Build software applications and systems',
-            required_skills: ['Programming', 'Problem Solving', 'Mathematics', 'Logical Thinking'],
-            salary_range: '₹4-12 LPA',
-            growth_prospects: 'Excellent growth in tech industry',
-            steps: ['Complete B.Tech/B.E. in CSE/IT', 'Learn programming languages', 'Build projects and gain experience']
-          }
-        ],
-        'Medical & Healthcare': [
-          {
-            career_path: 'Healthcare Professional',
-            match_percentage: 88,
-            description: 'Provide medical care and health services',
-            required_skills: ['Medical Knowledge', 'Empathy', 'Communication', 'Attention to Detail'],
-            salary_range: '₹5-20 LPA',
-            growth_prospects: 'Always in demand, fulfilling career',
-            steps: ['Complete medical degree', 'Gain clinical experience', 'Consider specialization']
-          }
-        ],
-        'Business & Management': [
-          {
-            career_path: 'Business Analyst',
-            match_percentage: 85,
-            description: 'Analyze business processes and recommend improvements',
-            required_skills: ['Analytical Skills', 'Communication', 'Business Knowledge', 'Data Analysis'],
-            salary_range: '₹3-8 LPA',
-            growth_prospects: 'High demand across industries',
-            steps: ['Complete business degree', 'Learn data analysis tools', 'Gain industry experience']
-          }
-        ]
-      },
-      graduate: {
-        'Technology & Software': [
-          {
-            career_path: 'Senior Software Developer',
-            match_percentage: 90,
-            description: 'Lead software development projects and mentor junior developers',
-            required_skills: ['Advanced Programming', 'System Design', 'Leadership', 'Project Management'],
-            salary_range: '₹8-25 LPA',
-            growth_prospects: 'Can progress to architect or management roles',
-            steps: ['Gain 2-3 years experience', 'Learn system design', 'Take leadership responsibilities']
-          }
-        ],
-        'Financial Services': [
-          {
-            career_path: 'Financial Analyst',
-            match_percentage: 87,
-            description: 'Analyze financial data and market trends for investment decisions',
-            required_skills: ['Financial Modeling', 'Data Analysis', 'Market Knowledge', 'Communication'],
-            salary_range: '₹6-15 LPA',
-            growth_prospects: 'Can advance to portfolio manager or investment banking',
-            steps: ['Get relevant certifications', 'Build financial modeling skills', 'Gain market experience']
-          }
-        ]
-      }
-    }
-
-    // Simple matching logic - in production, this would be more sophisticated
-    const suggestions: CareerSuggestion[] = []
-    const levelCareers = careerDatabase[educationLevel as keyof typeof careerDatabase]
-    
-    Object.values(levelCareers).flat().forEach(career => {
-      suggestions.push(career)
-    })
-
-    return suggestions.slice(0, 3) // Return top 3 suggestions
-  }
 
   const handleSubmit = async () => {
     if (!user) return
 
     setLoading(true)
     try {
-      // Evaluate responses and get career suggestions
-      const careerSuggestions = evaluateResponses(responses, educationLevel)
-
-      // Save quiz response to database
-      const { error } = await supabase
-        .from('quiz_responses')
-        .insert({
-          user_id: user.id,
-          education_level: educationLevel,
-          responses,
-          career_suggestions: careerSuggestions,
-          completed_at: new Date().toISOString()
-        })
-
-      if (error) throw error
+      const result: any = await api.submitQuiz({
+        userId: user.id,
+        educationLevel,
+        responses
+      })
 
       toast({
         title: "Quiz completed successfully!",
         description: "Your personalized career suggestions are ready."
       })
 
-      onComplete(careerSuggestions)
+      onComplete(result.careerSuggestions || [])
     } catch (error: any) {
       toast({
         title: "Error saving quiz results",

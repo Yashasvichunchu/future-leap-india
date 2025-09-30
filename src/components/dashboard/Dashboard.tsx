@@ -4,8 +4,9 @@ import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
-import { supabase, CareerSuggestion, SkillGap, CareerRoadmap } from '@/lib/supabase'
+import { api } from '@/lib/api'
 import { useAuth } from '@/hooks/useAuth'
+import { toast } from '@/hooks/use-toast'
 import { 
   User, 
   Target, 
@@ -15,13 +16,14 @@ import {
   Download,
   Award,
   BookOpen,
-  Clock
+  Clock,
+  Loader2
 } from 'lucide-react'
 
 export const Dashboard = () => {
-  const [quizResults, setQuizResults] = useState<CareerSuggestion[]>([])
-  const [skillGaps, setSkillGaps] = useState<SkillGap[]>([])
-  const [roadmaps, setRoadmaps] = useState<CareerRoadmap[]>([])
+  const [quizResults, setQuizResults] = useState<any[]>([])
+  const [skillGaps, setSkillGaps] = useState<any[]>([])
+  const [roadmaps, setRoadmaps] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const { user } = useAuth()
 
@@ -34,40 +36,23 @@ export const Dashboard = () => {
   const loadDashboardData = async () => {
     if (!user) return
 
+    setLoading(true)
     try {
-      // Load quiz results
-      const { data: quizData } = await supabase
-        .from('quiz_responses')
-        .select('career_suggestions')
-        .eq('user_id', user.id)
-        .order('completed_at', { ascending: false })
-        .limit(1)
+      const [suggestions, gaps, maps] = await Promise.all([
+        api.getCareerSuggestions(user.id),
+        api.getSkillGaps(user.id),
+        api.getRoadmaps(user.id)
+      ])
 
-      if (quizData && quizData[0]) {
-        setQuizResults(quizData[0].career_suggestions)
-      }
-
-      // Load skill gaps
-      const { data: skillData } = await supabase
-        .from('skill_gaps')
-        .select('*')
-        .eq('user_id', user.id)
-
-      if (skillData) {
-        setSkillGaps(skillData)
-      }
-
-      // Load roadmaps
-      const { data: roadmapData } = await supabase
-        .from('career_roadmaps')
-        .select('*')
-        .eq('user_id', user.id)
-
-      if (roadmapData) {
-        setRoadmaps(roadmapData)
-      }
-    } catch (error) {
-      console.error('Error loading dashboard data:', error)
+      setQuizResults(suggestions)
+      setSkillGaps(gaps)
+      setRoadmaps(maps)
+    } catch (error: any) {
+      toast({
+        title: "Error loading dashboard",
+        description: error.message,
+        variant: "destructive"
+      })
     } finally {
       setLoading(false)
     }
@@ -77,38 +62,18 @@ export const Dashboard = () => {
     if (!user) return
 
     try {
-      // This would typically call an AI service or have more sophisticated logic
-      const skillAnalysis = {
-        career_path: careerPath,
-        current_skills: ['Basic Programming', 'Communication', 'Teamwork'],
-        required_skills: ['Advanced Programming', 'System Design', 'Project Management', 'Leadership'],
-        missing_skills: ['System Design', 'Project Management', 'Leadership'],
-        recommendations: [
-          {
-            skill: 'System Design',
-            courses: ['System Design Course on Udemy', 'AWS Architecture Certification'],
-            resources: ['High Scalability Blog', 'System Design Primer'],
-            time_to_learn: '3-6 months'
-          },
-          {
-            skill: 'Project Management',
-            courses: ['PMP Certification', 'Agile Project Management'],
-            resources: ['PMI Resources', 'Scrum Guide'],
-            time_to_learn: '2-4 months'
-          }
-        ]
-      }
-
-      await supabase
-        .from('skill_gaps')
-        .insert({
-          user_id: user.id,
-          ...skillAnalysis
-        })
-
+      await api.generateSkillGapAnalysis(user.id, careerPath)
+      toast({
+        title: "Analysis Generated",
+        description: "Skill gap analysis has been created successfully"
+      })
       loadDashboardData()
-    } catch (error) {
-      console.error('Error generating skill analysis:', error)
+    } catch (error: any) {
+      toast({
+        title: "Error generating analysis",
+        description: error.message,
+        variant: "destructive"
+      })
     }
   }
 
@@ -116,64 +81,43 @@ export const Dashboard = () => {
     if (!user) return
 
     try {
-      const roadmapData = {
-        career_path: careerPath,
-        timeline_months: 24,
-        steps: [
-          {
-            id: '1',
-            title: 'Foundation Skills',
-            description: 'Build core technical and soft skills',
-            type: 'skill' as const,
-            duration: '3 months',
-            resources: ['Online courses', 'Practice projects'],
-            completed: false
-          },
-          {
-            id: '2',
-            title: 'Specialized Training',
-            description: 'Complete industry-specific certifications',
-            type: 'certification' as const,
-            duration: '6 months',
-            resources: ['Professional certifications', 'Bootcamps'],
-            completed: false
-          },
-          {
-            id: '3',
-            title: 'Practical Experience',
-            description: 'Gain hands-on experience through internships',
-            type: 'internship' as const,
-            duration: '6 months',
-            resources: ['Company internships', 'Freelance projects'],
-            completed: false
-          },
-          {
-            id: '4',
-            title: 'Portfolio Development',
-            description: 'Build a strong portfolio showcasing your skills',
-            type: 'project' as const,
-            duration: '3 months',
-            resources: ['Personal projects', 'Open source contributions'],
-            completed: false
-          }
-        ]
-      }
-
-      await supabase
-        .from('career_roadmaps')
-        .insert({
-          user_id: user.id,
-          ...roadmapData
-        })
-
+      await api.generateRoadmap(user.id, careerPath)
+      toast({
+        title: "Roadmap Generated",
+        description: "Career roadmap has been created successfully"
+      })
       loadDashboardData()
-    } catch (error) {
-      console.error('Error generating roadmap:', error)
+    } catch (error: any) {
+      toast({
+        title: "Error generating roadmap",
+        description: error.message,
+        variant: "destructive"
+      })
+    }
+  }
+
+  const downloadRoadmapPDF = async (roadmapId: string) => {
+    try {
+      await api.downloadRoadmapPDF(roadmapId)
+      toast({
+        title: "Download Started",
+        description: "Your roadmap PDF is being downloaded"
+      })
+    } catch (error: any) {
+      toast({
+        title: "Download failed",
+        description: error.message,
+        variant: "destructive"
+      })
     }
   }
 
   if (loading) {
-    return <div className="flex items-center justify-center h-64">Loading...</div>
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    )
   }
 
   return (
@@ -340,7 +284,11 @@ export const Dashboard = () => {
                           <span className="text-sm text-muted-foreground">
                             {roadmap.timeline_months} months timeline
                           </span>
-                          <Button size="sm" variant="outline">
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={() => downloadRoadmapPDF(roadmap.id)}
+                          >
                             <Download className="w-4 h-4 mr-1" />
                             Export PDF
                           </Button>
